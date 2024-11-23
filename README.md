@@ -1,2 +1,2 @@
-# template-typescript-lib
-作为typescript库的模板
+# js-buffer-tools
+方便操作Buffer的工具类
