@@ -1,0 +1,20 @@
+{
+  "name": "@heraclius",
+  "version": "1.0.0",
+  "description": "",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "vite build",
+    "watch": "vite build --watch",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@heraclius/external-deps-plugin": "github:saber71/vite-external-deps-plugin",
+    "@types/node": "^22.9.1",
+    "unplugin-swc": "^1.5.1",
+    "vite": "^5.4.11",
+    "vite-plugin-dts": "^4.3.0",
+    "vitest": "^2.1.5"
+  }
+}
