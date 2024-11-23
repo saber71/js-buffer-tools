@@ -43,6 +43,9 @@ class BufferReader {
         this._start = _start;
         this._end = _end;
     }
+    static bufferLength(str) {
+        return Buffer.from(str).length;
+    }
     static slice(buffer, offset, length = buffer.length - offset) {
         const result = Buffer.alloc(length);
         buffer.copy(result, 0, offset, offset + length);

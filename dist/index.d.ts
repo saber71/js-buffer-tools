@@ -13,6 +13,7 @@ export declare class BufferReader {
     protected readonly _start: number;
     protected readonly _end: number;
     constructor(_data: Buffer, _start: number, _end?: number);
+    static bufferLength(str: string): number;
     static slice(buffer: Buffer, offset: number, length?: number): Buffer;
     get length(): number;
     /**

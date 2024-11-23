@@ -8,6 +8,10 @@ export class BufferReader {
     protected readonly _end: number = _data.length - 1,
   ) {}
 
+  static bufferLength(str: string) {
+    return Buffer.from(str).length;
+  }
+
   static slice(
     buffer: Buffer,
     offset: number,
