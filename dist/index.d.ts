@@ -1,3 +1,5 @@
+import { Class } from '@heraclius/js-tools';
+
 export declare namespace BufferData {
     export type Type = "uint8" | "int8" | "uint16" | "int16" | "uint32" | "int32" | "uint64" | "int64";
     export function bytes(type: Type): 8 | 4 | 2 | 1;
@@ -18,13 +20,8 @@ export declare class BufferReader {
      *
      * 此方法允许从当前缓冲区读取器中指定一个范围，然后根据这个范围创建一个新的缓冲区读取器
      * 它主要用于在处理缓冲区数据时，提取特定部分的数据进行操作或传输
-     *
-     * @param offset 起始偏移量，表示从当前缓冲区读取器的哪个位置开始切分，默认为0
-     * @param length 要切分的长度，表示新缓冲区读取器的长度，默认为当前缓冲区读取器的剩余长度
-     * @returns 返回一个新的缓冲区读取器实例，该实例包含指定范围内的数据
-     * @throws 如果指定的范围超出了当前缓冲区读取器的边界，则抛出错误
      */
-    slice(offset?: number, length?: number): this;
+    slice<T extends BufferReader>(clazz: Class<T>, offset?: number, length?: number): T;
     readBit(offset: number, bit: number): 1 | 0;
     readInt8(offset: number): number;
     readUint8(offset: number): number;

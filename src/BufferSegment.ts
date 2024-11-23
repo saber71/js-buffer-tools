@@ -1,4 +1,5 @@
 import { BufferData } from "./BufferData";
+import { BufferReader } from "./BufferReader";
 import { BufferWriter } from "./BufferWriter";
 
 export namespace BufferSegment {
@@ -130,7 +131,9 @@ export namespace BufferSegment {
     }
 
     protected _readValue(): string {
-      return this.buffer.slice(this.offset, this._byteLength).toString();
+      return this.buffer
+        .slice(BufferReader, this.offset, this._byteLength)
+        .toString();
     }
 
     protected _writeValue(value: string): void {
@@ -154,12 +157,14 @@ export namespace BufferSegment {
     }
 
     protected _readValue(): string {
-      const data = this.buffer.slice(this.offset, this.length);
+      const data = this.buffer.slice(BufferReader, this.offset, this.length);
       const strLength = data.read(
         BufferData.unsignedType(this.lengthByte),
         data.length - this.lengthByte,
       );
-      return this.buffer.slice(this.offset, strLength as any).toString();
+      return this.buffer
+        .slice(BufferReader, this.offset, strLength as any)
+        .toString();
     }
 
     protected _writeValue(value: string): void {
@@ -205,7 +210,7 @@ export namespace BufferSegment {
 
     protected _readValue(): Array<number> {
       return this.buffer
-        .slice(this.offset, this._byteLength)
+        .slice(BufferReader, this.offset, this._byteLength)
         .toNumberArray("uint8");
     }
 

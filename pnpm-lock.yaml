@@ -7,6 +7,10 @@ settings:
 importers:
 
   .:
+    dependencies:
+      '@heraclius/js-tools':
+        specifier: github:saber71/js-tools
+        version: https://codeload.github.com/saber71/js-tools/tar.gz/fb14cb427bc8c7db107d662e2dc0ae23a3cf8abd
     devDependencies:
       '@heraclius/external-deps-plugin':
         specifier: github:saber71/vite-external-deps-plugin
@@ -189,6 +193,10 @@ packages:
     version: 1.1.0
     peerDependencies:
       vite: ^5.3.3
+
+  '@heraclius/js-tools@https://codeload.github.com/saber71/js-tools/tar.gz/fb14cb427bc8c7db107d662e2dc0ae23a3cf8abd':
+    resolution: {tarball: https://codeload.github.com/saber71/js-tools/tar.gz/fb14cb427bc8c7db107d662e2dc0ae23a3cf8abd}
+    version: 1.1.0
 
   '@jridgewell/sourcemap-codec@1.5.0':
     resolution: {integrity: sha512-gv3ZRaISU3fjPAgNsriBRqGWQL6quFx04YMPW/zD8XMLsU32mhCCbfbO6KZFLjvYpCZ8zyDEgqsgf+PwPaM7GQ==}
@@ -973,6 +981,8 @@ snapshots:
   '@heraclius/external-deps-plugin@https://codeload.github.com/saber71/vite-external-deps-plugin/tar.gz/acf02c4acc0af71403e79ba3d19e4a5884b60172(vite@5.4.11(@types/node@22.9.2))':
     dependencies:
       vite: 5.4.11(@types/node@22.9.2)
+
+  '@heraclius/js-tools@https://codeload.github.com/saber71/js-tools/tar.gz/fb14cb427bc8c7db107d662e2dc0ae23a3cf8abd': {}
 
   '@jridgewell/sourcemap-codec@1.5.0': {}
 

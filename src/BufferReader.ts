@@ -1,3 +1,4 @@
+import type { Class } from "@heraclius/js-tools";
 import { BufferData } from "./BufferData";
 
 export class BufferReader {
@@ -22,7 +23,7 @@ export class BufferReader {
   }
 
   getData() {
-    return this.slice()._data;
+    return this._data;
   }
 
   /**
@@ -30,21 +31,20 @@ export class BufferReader {
    *
    * 此方法允许从当前缓冲区读取器中指定一个范围，然后根据这个范围创建一个新的缓冲区读取器
    * 它主要用于在处理缓冲区数据时，提取特定部分的数据进行操作或传输
-   *
-   * @param offset 起始偏移量，表示从当前缓冲区读取器的哪个位置开始切分，默认为0
-   * @param length 要切分的长度，表示新缓冲区读取器的长度，默认为当前缓冲区读取器的剩余长度
-   * @returns 返回一个新的缓冲区读取器实例，该实例包含指定范围内的数据
-   * @throws 如果指定的范围超出了当前缓冲区读取器的边界，则抛出错误
    */
-  slice(offset: number = 0, length: number = this.length): this {
+  slice<T extends BufferReader>(
+    clazz: Class<T>,
+    offset: number = 0,
+    length: number = this.length,
+  ): T {
     // 检查指定的范围是否超出了当前缓冲区读取器的边界
     if (offset + length - 1 > this._end)
       throw new Error("length out of buffer range");
-
-    // 调用BufferReader的slice方法，根据指定的范围从当前缓冲区读取器中切出一个新的缓冲区读取器
-    const data = BufferReader.slice(this._data, this._start + offset, length);
-    //@ts-ignore
-    return new this.constructor(data, 0, data.length - 1);
+    return new clazz(
+      this._data,
+      this._start + offset,
+      this._start + offset + length,
+    );
   }
 
   // 读取指定偏移量处的指定位数的二进制位，注意是从高位往低位读取

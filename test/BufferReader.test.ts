@@ -1,13 +1,14 @@
 import { describe, expect, test } from "vitest";
-import { BufferReader } from "../src/BufferReader";
+import { BufferReader } from "../src";
 
 describe("BufferReader", () => {
   test("slice method should return a new BufferReader instance with correct data", () => {
     const buffer = Buffer.from([0x01, 0x02, 0x03, 0x04]);
     const reader = new BufferReader(buffer, 1, 3);
-    const sliced = reader.slice(1, 2);
+    const sliced = reader.slice(BufferReader, 1, 2);
 
-    expect(sliced.getData()).toEqual(Buffer.from([0x03, 0x04]));
+    expect(sliced.readUint8(0)).toEqual(3);
+    expect(sliced.readUint8(1)).toEqual(4);
   });
 
   test("readBit method should return correct bit", () => {
@@ -28,7 +29,7 @@ describe("BufferReader", () => {
     const buffer = Buffer.from([0x01]);
     const reader = new BufferReader(buffer, 0, 0);
 
-    expect(() => reader.readInt8(2)).toThrowError("offset out of buffer range");
+    expect(() => reader.readInt8(1)).toThrowError("offset out of buffer range");
   });
 
   // ... other similar tests for different methods
