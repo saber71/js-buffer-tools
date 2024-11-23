@@ -120,6 +120,26 @@ export namespace BufferSegment {
     }
   }
 
+  export class Float extends Base {
+    protected _readValue(): number {
+      return this.buffer.readFloat(this.offset);
+    }
+
+    protected _writeValue(value: number): void {
+      this.buffer.writeFloat(value, this.offset);
+    }
+  }
+
+  export class Double extends Base {
+    protected _readValue(): number {
+      return this.buffer.readDouble(this.offset);
+    }
+
+    protected _writeValue(value: number): void {
+      this.buffer.writeDouble(value, this.offset);
+    }
+  }
+
   export class String extends Base<string> {
     constructor(
       buffer: BufferWriter,

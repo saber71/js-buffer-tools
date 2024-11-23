@@ -7,7 +7,9 @@ export namespace BufferData {
     | "uint32"
     | "int32"
     | "uint64"
-    | "int64";
+    | "int64"
+    | "float"
+    | "double";
 
   export function bytes(type: Type) {
     if (type === "int64") return 8;
@@ -18,6 +20,8 @@ export namespace BufferData {
     else if (type === "uint8") return 1;
     else if (type === "int16") return 2;
     else if (type === "int32") return 4;
+    else if (type === "float") return 4;
+    else if (type === "double") return 8;
     throw new Error(`Unknown data type ${type}`);
   }
 

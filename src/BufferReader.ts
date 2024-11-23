@@ -22,10 +22,6 @@ export class BufferReader {
     return this._end - this._start + 1;
   }
 
-  getData() {
-    return this._data;
-  }
-
   /**
    * 从当前缓冲区读取器中切出一个新的缓冲区读取器
    *
@@ -86,6 +82,12 @@ export class BufferReader {
     return this._data.readInt32BE(offset);
   }
 
+  readFloat(offset: number) {
+    offset += this._start;
+    if (offset + 3 > this._end) throw new Error("offset out of buffer range");
+    return this._data.readFloatBE(offset);
+  }
+
   readUint32(offset: number) {
     offset += this._start;
     if (offset + 3 > this._end) throw new Error("offset out of buffer range");
@@ -104,6 +106,12 @@ export class BufferReader {
     return this._data.readBigUInt64BE(offset);
   }
 
+  readDouble(offset: number) {
+    offset += this._start;
+    if (offset + 7 > this._end) throw new Error("offset out of buffer range");
+    return this._data.readDoubleBE(offset);
+  }
+
   read(type: BufferData.Type, offset: number) {
     if (type === "uint8") return this.readUint8(offset);
     else if (type === "int8") return this.readInt8(offset);
@@ -113,6 +121,8 @@ export class BufferReader {
     else if (type === "uint32") return this.readUint32(offset);
     else if (type === "uint64") return this.readUint64(offset);
     else if (type === "int64") return this.readInt64(offset);
+    else if (type === "float") return this.readFloat(offset);
+    else if (type === "double") return this.readDouble(offset);
     throw new Error("Invalid type " + type);
   }
 
@@ -145,6 +155,14 @@ export class BufferReader {
         break;
       case "int32":
         methodName = "readInt32";
+        offsetStep = 4;
+        break;
+      case "double":
+        methodName = "readDouble";
+        offsetStep = 8;
+        break;
+      case "float":
+        methodName = "readFloat";
         offsetStep = 4;
         break;
       default:

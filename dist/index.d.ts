@@ -1,7 +1,8 @@
 import { Class } from '@heraclius/js-tools';
+import { TypedNumber } from '@heraclius/js-tools';
 
 export declare namespace BufferData {
-    export type Type = "uint8" | "int8" | "uint16" | "int16" | "uint32" | "int32" | "uint64" | "int64";
+    export type Type = "uint8" | "int8" | "uint16" | "int16" | "uint32" | "int32" | "uint64" | "int64" | "float" | "double";
     export function bytes(type: Type): 8 | 4 | 2 | 1;
     export function unsignedType(bytes: number): "uint8" | "uint16" | "uint32" | "uint64";
     export function signedType(bytes: number): "int8" | "int16" | "int32" | "int64";
@@ -14,7 +15,6 @@ export declare class BufferReader {
     constructor(_data: Buffer, _start: number, _end?: number);
     static slice(buffer: Buffer, offset: number, length?: number): Buffer;
     get length(): number;
-    getData(): Buffer;
     /**
      * 从当前缓冲区读取器中切出一个新的缓冲区读取器
      *
@@ -28,9 +28,11 @@ export declare class BufferReader {
     readInt16(offset: number): number;
     readUint16(offset: number): number;
     readInt32(offset: number): number;
+    readFloat(offset: number): number;
     readUint32(offset: number): number;
     readInt64(offset: number): bigint;
     readUint64(offset: number): bigint;
+    readDouble(offset: number): number;
     read(type: BufferData.Type, offset: number): number | bigint;
     toString(encoding?: BufferEncoding): string;
     toNumberArray(type: BufferData.Type): Array<number>;
@@ -85,6 +87,14 @@ export declare namespace BufferSegment {
         protected _readValue(): bigint;
         protected _writeValue(value: bigint): void;
     }
+    export class Float extends Base {
+        protected _readValue(): number;
+        protected _writeValue(value: number): void;
+    }
+    export class Double extends Base {
+        protected _readValue(): number;
+        protected _writeValue(value: number): void;
+    }
     export class String extends Base<string> {
         readonly maxLength: number;
         private _byteLength;
@@ -111,18 +121,20 @@ export declare namespace BufferSegment {
 }
 
 export declare class BufferWriter extends BufferReader {
-    writeBit(bool: boolean | number, bit: number, offset: number): void;
-    writeInt8(value: number, offset: number): void;
-    writeUint8(value: number, offset: number): void;
-    writeInt16(value: number, offset: number): void;
-    writeUint16(value: number, offset: number): void;
-    writeInt32(value: number, offset: number): void;
-    writeUint32(value: number, offset: number): void;
-    writeInt64(value: bigint, offset: number): void;
-    writeUint64(value: bigint, offset: number): void;
-    write(type: BufferData.Type, value: number | bigint, offset: number): void;
-    putArray(array: number[], type: BufferData.Type, writeInStart?: number): void;
-    putBigintArray(data: bigint[], writeInStart?: number, unsigned?: boolean): void;
+    writeBit(bool: boolean | number | TypedNumber.Bit, bit: number, offset: number): void;
+    writeInt8(value: number | TypedNumber.Int8, offset: number): void;
+    writeUint8(value: number | TypedNumber.Uint8, offset: number): void;
+    writeInt16(value: number | TypedNumber.Int16, offset: number): void;
+    writeUint16(value: number | TypedNumber.Uint16, offset: number): void;
+    writeInt32(value: number | TypedNumber.Int32, offset: number): void;
+    writeUint32(value: number | TypedNumber.Uint32, offset: number): void;
+    writeFloat(value: number | TypedNumber.Float, offset: number): void;
+    writeInt64(value: bigint | TypedNumber.Int64, offset: number): void;
+    writeUint64(value: bigint | TypedNumber.Uint64, offset: number): void;
+    writeDouble(value: number | TypedNumber.Double, offset: number): void;
+    write(type: BufferData.Type, value: number | bigint | TypedNumber.Base, offset: number): void;
+    putArray(array: Array<number | TypedNumber.Base>, type: BufferData.Type, writeInStart?: number): void;
+    putBigintArray(data: Array<bigint | TypedNumber.Int64 | TypedNumber.Uint64>, writeInStart?: number, unsigned?: boolean): void;
     putBuffer(data: Buffer | BufferReader, offset: number, start?: number, length?: number): void;
 }
 

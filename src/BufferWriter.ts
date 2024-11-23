@@ -1,65 +1,98 @@
+import { readProp, TypedNumber } from "@heraclius/js-tools";
 import { BufferData } from "./BufferData";
 import { BufferReader } from "./BufferReader";
 
 export class BufferWriter extends BufferReader {
-  writeBit(bool: boolean | number, bit: number, offset: number) {
+  writeBit(
+    bool: boolean | number | TypedNumber.Bit,
+    bit: number,
+    offset: number,
+  ) {
     if (bit < 0 || bit > 7) throw new Error("bit out of range");
     bit = 7 - bit;
-    const bitValue = bool ? 1 : 0;
+    const bitValue = TypedNumber.Bit.value(bool) ? 1 : 0;
     const oldValue = this.readUint8(offset);
     const newValue = bitValue ? oldValue | (1 << bit) : oldValue & ~(1 << bit);
     this.writeUint8(newValue, offset);
   }
 
-  writeInt8(value: number, offset: number) {
+  writeInt8(value: number | TypedNumber.Int8, offset: number) {
+    value = TypedNumber.Int8.value(value);
     offset += this._start;
     if (offset > this._end) throw new Error("offset out of buffer range");
     this._data.writeInt8(value, offset);
   }
 
-  writeUint8(value: number, offset: number) {
+  writeUint8(value: number | TypedNumber.Uint8, offset: number) {
+    value = TypedNumber.Uint8.value(value);
     offset += this._start;
     if (offset > this._end) throw new Error("offset out of buffer range");
     this._data.writeUint8(value, offset);
   }
 
-  writeInt16(value: number, offset: number) {
+  writeInt16(value: number | TypedNumber.Int16, offset: number) {
+    value = TypedNumber.Int16.value(value);
     offset += this._start;
     if (offset + 1 > this._end) throw new Error("offset out of buffer range");
     this._data.writeInt16BE(value, offset);
   }
 
-  writeUint16(value: number, offset: number) {
+  writeUint16(value: number | TypedNumber.Uint16, offset: number) {
+    value = TypedNumber.Uint16.value(value);
     offset += this._start;
     if (offset + 1 > this._end) throw new Error("offset out of buffer range");
     this._data.writeUint16BE(value, offset);
   }
 
-  writeInt32(value: number, offset: number) {
+  writeInt32(value: number | TypedNumber.Int32, offset: number) {
+    value = TypedNumber.Uint32.value(value);
     offset += this._start;
     if (offset + 3 > this._end) throw new Error("offset out of buffer range");
     this._data.writeInt32BE(value, offset);
   }
 
-  writeUint32(value: number, offset: number) {
+  writeUint32(value: number | TypedNumber.Uint32, offset: number) {
+    value = TypedNumber.Uint32.value(value);
     offset += this._start;
     if (offset + 3 > this._end) throw new Error("offset out of buffer range");
     this._data.writeUint32BE(value, offset);
   }
 
-  writeInt64(value: bigint, offset: number) {
+  writeFloat(value: number | TypedNumber.Float, offset: number) {
+    value = TypedNumber.Float.value(value);
+    offset += this._start;
+    if (offset + 3 > this._end) throw new Error("offset out of buffer range");
+    this._data.writeFloatBE(value, offset);
+  }
+
+  writeInt64(value: bigint | TypedNumber.Int64, offset: number) {
+    value = TypedNumber.Int64.value(value);
     offset += this._start;
     if (offset + 7 > this._end) throw new Error("offset out of buffer range");
     this._data.writeBigInt64BE(value, offset);
   }
 
-  writeUint64(value: bigint, offset: number) {
+  writeUint64(value: bigint | TypedNumber.Uint64, offset: number) {
+    value = TypedNumber.Uint64.value(value);
     offset += this._start;
     if (offset + 7 > this._end) throw new Error("offset out of buffer range");
     this._data.writeBigUInt64BE(value, offset);
   }
 
-  write(type: BufferData.Type, value: number | bigint, offset: number) {
+  writeDouble(value: number | TypedNumber.Double, offset: number) {
+    value = TypedNumber.Uint64.value(value);
+    offset += this._start;
+    if (offset + 7 > this._end) throw new Error("offset out of buffer range");
+    this._data.writeDoubleBE(value, offset);
+  }
+
+  write(
+    type: BufferData.Type,
+    value: number | bigint | TypedNumber.Base,
+    offset: number,
+  ) {
+    if (value instanceof TypedNumber.Bit) value = value.value;
+    else value = TypedNumber.Base.value(value);
     if (type === "uint8") return this.writeUint8(value as any, offset);
     else if (type === "int8") return this.writeInt8(value as any, offset);
     else if (type === "int16") return this.writeInt16(value as any, offset);
@@ -68,13 +101,27 @@ export class BufferWriter extends BufferReader {
     else if (type === "uint32") return this.writeUint32(value as any, offset);
     else if (type === "uint64") return this.writeUint64(value as any, offset);
     else if (type === "int64") return this.writeInt64(value as any, offset);
+    else if (type === "float") return this.writeFloat(value as any, offset);
+    else if (type === "double") return this.writeDouble(value as any, offset);
     throw new Error("Invalid type " + type);
   }
 
-  putArray(array: number[], type: BufferData.Type, writeInStart: number = 0) {
+  putArray(
+    array: Array<number | TypedNumber.Base>,
+    type: BufferData.Type,
+    writeInStart: number = 0,
+  ) {
     let methodName = "",
       offsetStep = 1;
     switch (type) {
+      case "double":
+        methodName = "writeDouble";
+        offsetStep = 8;
+        break;
+      case "float":
+        methodName = "writeFloat";
+        offsetStep = 4;
+        break;
       case "int32":
         methodName = "writeInt32";
         offsetStep = 4;
@@ -106,7 +153,7 @@ export class BufferWriter extends BufferReader {
   }
 
   putBigintArray(
-    data: bigint[],
+    data: Array<bigint | TypedNumber.Int64 | TypedNumber.Uint64>,
     writeInStart: number = 0,
     unsigned: boolean = false,
   ) {
@@ -124,7 +171,7 @@ export class BufferWriter extends BufferReader {
   ) {
     if (this._start + offset + length > this._end)
       throw new Error("offset out of buffer range");
-    if (data instanceof BufferReader) data = data.getData();
+    if (data instanceof BufferReader) data = readProp<Buffer>(data, "_data");
     data.copy(this._data, this._start + offset, start, length);
   }
 }

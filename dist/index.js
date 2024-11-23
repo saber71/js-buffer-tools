@@ -1,4 +1,5 @@
-var BufferData;
+import { TypedNumber, readProp } from '@heraclius/js-tools';
+
 (function(BufferData) {
     function bytes(type) {
         if (type === "int64") return 8;
@@ -9,6 +10,8 @@ var BufferData;
         else if (type === "uint8") return 1;
         else if (type === "int16") return 2;
         else if (type === "int32") return 4;
+        else if (type === "float") return 4;
+        else if (type === "double") return 8;
         throw new Error(`Unknown data type ${type}`);
     }
     BufferData.bytes = bytes;
@@ -29,6 +32,7 @@ var BufferData;
     }
     BufferData.signedType = signedType;
 })(BufferData || (BufferData = {}));
+var BufferData;
 
 class BufferReader {
     _data;
@@ -46,9 +50,6 @@ class BufferReader {
     }
     get length() {
         return this._end - this._start + 1;
-    }
-    getData() {
-        return this._data;
     }
     /**
    * 从当前缓冲区读取器中切出一个新的缓冲区读取器
@@ -93,6 +94,11 @@ class BufferReader {
         if (offset + 3 > this._end) throw new Error("offset out of buffer range");
         return this._data.readInt32BE(offset);
     }
+    readFloat(offset) {
+        offset += this._start;
+        if (offset + 3 > this._end) throw new Error("offset out of buffer range");
+        return this._data.readFloatBE(offset);
+    }
     readUint32(offset) {
         offset += this._start;
         if (offset + 3 > this._end) throw new Error("offset out of buffer range");
@@ -108,6 +114,11 @@ class BufferReader {
         if (offset + 7 > this._end) throw new Error("offset out of buffer range");
         return this._data.readBigUInt64BE(offset);
     }
+    readDouble(offset) {
+        offset += this._start;
+        if (offset + 7 > this._end) throw new Error("offset out of buffer range");
+        return this._data.readDoubleBE(offset);
+    }
     read(type, offset) {
         if (type === "uint8") return this.readUint8(offset);
         else if (type === "int8") return this.readInt8(offset);
@@ -117,6 +128,8 @@ class BufferReader {
         else if (type === "uint32") return this.readUint32(offset);
         else if (type === "uint64") return this.readUint64(offset);
         else if (type === "int64") return this.readInt64(offset);
+        else if (type === "float") return this.readFloat(offset);
+        else if (type === "double") return this.readDouble(offset);
         throw new Error("Invalid type " + type);
     }
     toString(encoding = "utf-8") {
@@ -148,6 +161,14 @@ class BufferReader {
                 methodName = "readInt32";
                 offsetStep = 4;
                 break;
+            case "double":
+                methodName = "readDouble";
+                offsetStep = 8;
+                break;
+            case "float":
+                methodName = "readFloat";
+                offsetStep = 4;
+                break;
             default:
                 throw new Error("Invalid type " + type);
         }
@@ -170,52 +191,74 @@ class BufferWriter extends BufferReader {
     writeBit(bool, bit, offset) {
         if (bit < 0 || bit > 7) throw new Error("bit out of range");
         bit = 7 - bit;
-        const bitValue = bool ? 1 : 0;
+        const bitValue = TypedNumber.Bit.value(bool) ? 1 : 0;
         const oldValue = this.readUint8(offset);
         const newValue = bitValue ? oldValue | 1 << bit : oldValue & ~(1 << bit);
         this.writeUint8(newValue, offset);
     }
     writeInt8(value, offset) {
+        value = TypedNumber.Int8.value(value);
         offset += this._start;
         if (offset > this._end) throw new Error("offset out of buffer range");
         this._data.writeInt8(value, offset);
     }
     writeUint8(value, offset) {
+        value = TypedNumber.Uint8.value(value);
         offset += this._start;
         if (offset > this._end) throw new Error("offset out of buffer range");
         this._data.writeUint8(value, offset);
     }
     writeInt16(value, offset) {
+        value = TypedNumber.Int16.value(value);
         offset += this._start;
         if (offset + 1 > this._end) throw new Error("offset out of buffer range");
         this._data.writeInt16BE(value, offset);
     }
     writeUint16(value, offset) {
+        value = TypedNumber.Uint16.value(value);
         offset += this._start;
         if (offset + 1 > this._end) throw new Error("offset out of buffer range");
         this._data.writeUint16BE(value, offset);
     }
     writeInt32(value, offset) {
+        value = TypedNumber.Uint32.value(value);
         offset += this._start;
         if (offset + 3 > this._end) throw new Error("offset out of buffer range");
         this._data.writeInt32BE(value, offset);
     }
     writeUint32(value, offset) {
+        value = TypedNumber.Uint32.value(value);
         offset += this._start;
         if (offset + 3 > this._end) throw new Error("offset out of buffer range");
         this._data.writeUint32BE(value, offset);
     }
+    writeFloat(value, offset) {
+        value = TypedNumber.Float.value(value);
+        offset += this._start;
+        if (offset + 3 > this._end) throw new Error("offset out of buffer range");
+        this._data.writeFloatBE(value, offset);
+    }
     writeInt64(value, offset) {
+        value = TypedNumber.Int64.value(value);
         offset += this._start;
         if (offset + 7 > this._end) throw new Error("offset out of buffer range");
         this._data.writeBigInt64BE(value, offset);
     }
     writeUint64(value, offset) {
+        value = TypedNumber.Uint64.value(value);
         offset += this._start;
         if (offset + 7 > this._end) throw new Error("offset out of buffer range");
         this._data.writeBigUInt64BE(value, offset);
     }
+    writeDouble(value, offset) {
+        value = TypedNumber.Uint64.value(value);
+        offset += this._start;
+        if (offset + 7 > this._end) throw new Error("offset out of buffer range");
+        this._data.writeDoubleBE(value, offset);
+    }
     write(type, value, offset) {
+        if (value instanceof TypedNumber.Bit) value = value.value;
+        else value = TypedNumber.Base.value(value);
         if (type === "uint8") return this.writeUint8(value, offset);
         else if (type === "int8") return this.writeInt8(value, offset);
         else if (type === "int16") return this.writeInt16(value, offset);
@@ -224,11 +267,21 @@ class BufferWriter extends BufferReader {
         else if (type === "uint32") return this.writeUint32(value, offset);
         else if (type === "uint64") return this.writeUint64(value, offset);
         else if (type === "int64") return this.writeInt64(value, offset);
+        else if (type === "float") return this.writeFloat(value, offset);
+        else if (type === "double") return this.writeDouble(value, offset);
         throw new Error("Invalid type " + type);
     }
     putArray(array, type, writeInStart = 0) {
         let methodName = "", offsetStep = 1;
         switch(type){
+            case "double":
+                methodName = "writeDouble";
+                offsetStep = 8;
+                break;
+            case "float":
+                methodName = "writeFloat";
+                offsetStep = 4;
+                break;
             case "int32":
                 methodName = "writeInt32";
                 offsetStep = 4;
@@ -266,12 +319,11 @@ class BufferWriter extends BufferReader {
     }
     putBuffer(data, offset, start = 0, length = data.length) {
         if (this._start + offset + length > this._end) throw new Error("offset out of buffer range");
-        if (data instanceof BufferReader) data = data.getData();
+        if (data instanceof BufferReader) data = readProp(data, "_data");
         data.copy(this._data, this._start + offset, start, length);
     }
 }
 
-var BufferSegment;
 (function(BufferSegment) {
     let Base = class Base {
         buffer;
@@ -291,8 +343,7 @@ var BufferSegment;
     let Bit = class Bit extends Base {
         bit;
         constructor(buffer, offset, bit){
-            super(buffer, offset);
-            this.bit = bit;
+            super(buffer, offset), this.bit = bit;
         }
         _readValue() {
             return this.buffer.readBit(this.offset, this.bit);
@@ -374,13 +425,29 @@ var BufferSegment;
         }
     };
     BufferSegment.Uint64 = Uint64;
+    let Float = class Float extends Base {
+        _readValue() {
+            return this.buffer.readFloat(this.offset);
+        }
+        _writeValue(value) {
+            this.buffer.writeFloat(value, this.offset);
+        }
+    };
+    BufferSegment.Float = Float;
+    let Double = class Double extends Base {
+        _readValue() {
+            return this.buffer.readDouble(this.offset);
+        }
+        _writeValue(value) {
+            this.buffer.writeDouble(value, this.offset);
+        }
+    };
+    BufferSegment.Double = Double;
     let String = class String extends Base {
         maxLength;
         _byteLength;
         constructor(buffer, offset, maxLength, _byteLength = maxLength){
-            super(buffer, offset);
-            this.maxLength = maxLength;
-            this._byteLength = _byteLength;
+            super(buffer, offset), this.maxLength = maxLength, this._byteLength = _byteLength;
         }
         _readValue() {
             return this.buffer.slice(BufferReader, this.offset, this._byteLength).toString();
@@ -399,9 +466,7 @@ var BufferSegment;
         length;
         lengthByte;
         constructor(buffer, offset, length, lengthByte){
-            super(buffer, offset);
-            this.length = length;
-            this.lengthByte = lengthByte;
+            super(buffer, offset), this.length = length, this.lengthByte = lengthByte;
         }
         _readValue() {
             const data = this.buffer.slice(BufferReader, this.offset, this.length);
@@ -422,8 +487,7 @@ var BufferSegment;
         bitLength;
         _byteLength;
         constructor(buffer, offset, bitLength){
-            super(buffer, offset);
-            this.bitLength = bitLength;
+            super(buffer, offset), this.bitLength = bitLength;
             this._byteLength = Math.ceil(bitLength / 8);
         }
         getBit(offset) {
@@ -447,5 +511,6 @@ var BufferSegment;
     };
     BufferSegment.Bitmap = Bitmap;
 })(BufferSegment || (BufferSegment = {}));
+var BufferSegment;
 
 export { BufferData, BufferReader, BufferSegment, BufferWriter };
