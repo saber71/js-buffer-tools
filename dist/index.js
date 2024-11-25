@@ -322,8 +322,27 @@ class BufferWriter extends BufferReader {
     }
     putBuffer(data, offset, start = 0, length = data.length) {
         if (this._start + offset + length > this._end) throw new Error("offset out of buffer range");
-        if (data instanceof BufferReader) data = readProp(data, "_data");
-        data.copy(this._data, this._start + offset, start, length);
+        if (data instanceof BufferReader) {
+            const readerBuffer = readProp(data, "_data");
+            if (readerBuffer.toBuffer) data = readerBuffer.toBuffer();
+            else {
+                // noinspection SuspiciousTypeOfGuard
+                if (readerBuffer instanceof Buffer) data = readerBuffer;
+                else {
+                    for(let i = 0; i < length; i++){
+                        this.writeUint8(readerBuffer.readUint8(i + start), i + offset);
+                    }
+                    return;
+                }
+            }
+        }
+        if (this._data.toBuffer) {
+            data.copy(this._data.toBuffer(), this._start + offset, start, length);
+        } else {
+            for(let i = 0; i < length; i++){
+                this.writeUint8(data.readUint8(i + start), i + offset);
+            }
+        }
     }
 }
 

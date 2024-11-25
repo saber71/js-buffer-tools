@@ -8,11 +8,11 @@ export declare namespace BufferData {
     export function signedType(bytes: number): "int8" | "int16" | "int32" | "int64";
 }
 
-export declare class BufferReader {
-    protected readonly _data: Buffer;
+export declare class BufferReader<BufferType extends IReadonlyBuffer = IReadonlyBuffer> {
+    protected readonly _data: BufferType;
     protected readonly _start: number;
     protected readonly _end: number;
-    constructor(_data: Buffer, _start: number, _end?: number);
+    constructor(_data: BufferType, _start: number, _end?: number);
     static bufferLength(str: string): number;
     static slice(buffer: Buffer, offset: number, length?: number): Buffer;
     get length(): number;
@@ -22,7 +22,7 @@ export declare class BufferReader {
      * 此方法允许从当前缓冲区读取器中指定一个范围，然后根据这个范围创建一个新的缓冲区读取器
      * 它主要用于在处理缓冲区数据时，提取特定部分的数据进行操作或传输
      */
-    slice<T extends BufferReader>(clazz: Class<T>, offset?: number, length?: number): T;
+    slice<B extends IReadonlyBuffer, T extends BufferReader<B>>(clazz: Class<T>, offset?: number, length?: number): T;
     readBit(offset: number, bit: number): 1 | 0;
     readInt8(offset: number): number;
     readUint8(offset: number): number;
@@ -121,7 +121,7 @@ export declare namespace BufferSegment {
     }
 }
 
-export declare class BufferWriter extends BufferReader {
+export declare class BufferWriter extends BufferReader<IWritableBuffer> {
     writeBit(bool: boolean | number | TypedNumber.Bit, bit: number, offset: number): void;
     writeInt8(value: number | TypedNumber.Int8, offset: number): void;
     writeUint8(value: number | TypedNumber.Uint8, offset: number): void;
@@ -137,6 +137,35 @@ export declare class BufferWriter extends BufferReader {
     putArray(array: Array<number | TypedNumber.Base>, type: BufferData.Type, writeInStart?: number): void;
     putBigintArray(data: Array<bigint | TypedNumber.Int64 | TypedNumber.Uint64>, writeInStart?: number, unsigned?: boolean): void;
     putBuffer(data: Buffer | BufferReader, offset: number, start?: number, length?: number): void;
+}
+
+export declare interface IReadonlyBuffer {
+    readonly length: number;
+    readInt8(offset: number): number;
+    readUint8(offset: number): number;
+    readInt16BE(offset: number): number;
+    readUint16BE(offset: number): number;
+    readInt32BE(offset: number): number;
+    readUint32BE(offset: number): number;
+    readFloatBE(offset: number): number;
+    readDoubleBE(offset: number): number;
+    readBigInt64BE(offset: number): bigint;
+    readBigUInt64BE(offset: number): bigint;
+    toString(encoding: BufferEncoding, start: number, end: number): string;
+    toBuffer?(): Buffer;
+}
+
+export declare interface IWritableBuffer extends IReadonlyBuffer {
+    writeInt8(value: number, offset: number): void;
+    writeUint8(value: number, offset: number): void;
+    writeInt16BE(value: number, offset: number): void;
+    writeUint16BE(value: number, offset: number): void;
+    writeInt32BE(value: number, offset: number): void;
+    writeUint32BE(value: number, offset: number): void;
+    writeFloatBE(value: number, offset: number): void;
+    writeDoubleBE(value: number, offset: number): void;
+    writeBigInt64BE(value: bigint, offset: number): void;
+    writeBigUInt64BE(value: bigint, offset: number): void;
 }
 
 export { }

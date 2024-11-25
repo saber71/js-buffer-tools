@@ -1,8 +1,30 @@
 import { readProp, TypedNumber } from "@heraclius/js-tools";
 import { BufferData } from "./BufferData";
-import { BufferReader } from "./BufferReader";
+import { BufferReader, type IReadonlyBuffer } from "./BufferReader";
 
-export class BufferWriter extends BufferReader {
+export interface IWritableBuffer extends IReadonlyBuffer {
+  writeInt8(value: number, offset: number): void;
+
+  writeUint8(value: number, offset: number): void;
+
+  writeInt16BE(value: number, offset: number): void;
+
+  writeUint16BE(value: number, offset: number): void;
+
+  writeInt32BE(value: number, offset: number): void;
+
+  writeUint32BE(value: number, offset: number): void;
+
+  writeFloatBE(value: number, offset: number): void;
+
+  writeDoubleBE(value: number, offset: number): void;
+
+  writeBigInt64BE(value: bigint, offset: number): void;
+
+  writeBigUInt64BE(value: bigint, offset: number): void;
+}
+
+export class BufferWriter extends BufferReader<IWritableBuffer> {
   writeBit(
     bool: boolean | number | TypedNumber.Bit,
     bit: number,
@@ -171,7 +193,26 @@ export class BufferWriter extends BufferReader {
   ) {
     if (this._start + offset + length > this._end)
       throw new Error("offset out of buffer range");
-    if (data instanceof BufferReader) data = readProp<Buffer>(data, "_data");
-    data.copy(this._data, this._start + offset, start, length);
+    if (data instanceof BufferReader) {
+      const readerBuffer = readProp<IReadonlyBuffer>(data, "_data");
+      if (readerBuffer.toBuffer) data = readerBuffer.toBuffer();
+      else {
+        // noinspection SuspiciousTypeOfGuard
+        if (readerBuffer instanceof Buffer) data = readerBuffer;
+        else {
+          for (let i = 0; i < length; i++) {
+            this.writeUint8(readerBuffer.readUint8(i + start), i + offset);
+          }
+          return;
+        }
+      }
+    }
+    if (this._data.toBuffer) {
+      data.copy(this._data.toBuffer(), this._start + offset, start, length);
+    } else {
+      for (let i = 0; i < length; i++) {
+        this.writeUint8(data.readUint8(i + start), i + offset);
+      }
+    }
   }
 }

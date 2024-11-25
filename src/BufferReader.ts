@@ -1,9 +1,39 @@
 import type { Class } from "@heraclius/js-tools";
 import { BufferData } from "./BufferData";
 
-export class BufferReader {
+export interface IReadonlyBuffer {
+  readonly length: number;
+
+  readInt8(offset: number): number;
+
+  readUint8(offset: number): number;
+
+  readInt16BE(offset: number): number;
+
+  readUint16BE(offset: number): number;
+
+  readInt32BE(offset: number): number;
+
+  readUint32BE(offset: number): number;
+
+  readFloatBE(offset: number): number;
+
+  readDoubleBE(offset: number): number;
+
+  readBigInt64BE(offset: number): bigint;
+
+  readBigUInt64BE(offset: number): bigint;
+
+  toString(encoding: BufferEncoding, start: number, end: number): string;
+
+  toBuffer?(): Buffer;
+}
+
+export class BufferReader<
+  BufferType extends IReadonlyBuffer = IReadonlyBuffer,
+> {
   constructor(
-    protected readonly _data: Buffer,
+    protected readonly _data: BufferType,
     protected readonly _start: number,
     protected readonly _end: number = _data.length - 1,
   ) {}
@@ -32,7 +62,7 @@ export class BufferReader {
    * 此方法允许从当前缓冲区读取器中指定一个范围，然后根据这个范围创建一个新的缓冲区读取器
    * 它主要用于在处理缓冲区数据时，提取特定部分的数据进行操作或传输
    */
-  slice<T extends BufferReader>(
+  slice<B extends IReadonlyBuffer, T extends BufferReader<B>>(
     clazz: Class<T>,
     offset: number = 0,
     length: number = this.length,
