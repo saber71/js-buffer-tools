@@ -336,8 +336,14 @@ class BufferWriter extends BufferReader {
                 }
             }
         }
-        if (this._data.toBuffer) {
-            data.copy(this._data.toBuffer(), this._start + offset, start, length);
+        let thisData;
+        if (this._data.toBuffer) thisData = this._data.toBuffer();
+        else {
+            // noinspection SuspiciousTypeOfGuard
+            if (this._data instanceof Buffer) thisData = this._data;
+        }
+        if (thisData) {
+            data.copy(thisData, this._start + offset, start, length);
         } else {
             for(let i = 0; i < length; i++){
                 this.writeUint8(data.readUint8(i + start), i + offset);
